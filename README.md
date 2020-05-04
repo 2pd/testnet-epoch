@@ -17,6 +17,8 @@ This small script can be used to generate trade on [spot testnet](https://testne
 pip install -r requirements.txt
 
 
+KEY=xxxxx SECRET=xxxxxx python generator.py
+
 ```
 
 ## Contribution
