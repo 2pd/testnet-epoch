@@ -22,7 +22,7 @@ secret = os.environ['SECRET']
 
 base_url = 'https://testnet.binance.vision'
 
-test_client = Spot(base_url=base_url)
+test_client = Spot(key=key, secret=secret, base_url=base_url)
 
 response = test_client.exchange_info()
 
@@ -39,8 +39,6 @@ for symbol in symbols:
     logging.info('getting ticker for {}'.format(symbol['symbol']))
     symbol['price'] = ticker['price']
 
-test_client = Spot(key=key, secret=secret, base_url=base_url)
-
 logging.info('start to place orders')
 
 def place_order(symbol, side,  price, qty):
@@ -52,9 +50,6 @@ def place_order(symbol, side,  price, qty):
         'quantity': qty,
         'price': price
     }
-
-    print(sell_params)
-
     try:
         test_client.new_order(**sell_params)
     except ClientError as error:
