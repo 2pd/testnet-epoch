@@ -6,14 +6,13 @@ This small script can be used to generate trade on [spot testnet](https://testne
 - fetch all symbols
 - query the last price from production site
 - generate trade in testnet
-- validatej the trade amount
+- validate the trade amount
 
 ## How to run
 
 ```python
 
 # install package
-# the package of binance-connector-python is still in beta version, but is working well
 pip install -r requirements.txt
 
 
@@ -21,6 +20,14 @@ KEY=xxxxx SECRET=xxxxxx python generator.py
 
 ```
 
-## Contribution
+## Maybe issue
 
-It's a small work, and please contribute if you can make it better
+This script is not smart enough to adjust the order qty automatically based on balance. So you might see account balance insufficient error.
+
+```shell
+> show me the money
+```
+
+## License
+
+MIT

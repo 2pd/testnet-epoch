@@ -4,8 +4,8 @@ import os
 import sys
 import logging
 import json
-import binance
-from binance.error import APIException, BinanceException
+from binance.spot import Spot
+from binance.error import ClientError, Error
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,9 +20,9 @@ except KeyError:
 key = os.environ['KEY']
 secret = os.environ['SECRET']
 
-base_url='https://testnet.binance.vision'
+base_url = 'https://testnet.binance.vision'
 
-test_client = binance.Market(base_url=base_url)
+test_client = Spot(base_url=base_url)
 
 response = test_client.exchange_info()
 
@@ -33,13 +33,13 @@ for symbol in response['symbols']:
     symbols.append(s)
 
 # client connect to production
-client = binance.Market()
+prod_client = Spot()
 for symbol in symbols:
-    ticker = client.ticker_price(symbol['symbol'])
+    ticker = prod_client.ticker_price(symbol['symbol'])
     logging.info('getting ticker for {}'.format(symbol['symbol']))
     symbol['price'] = ticker['price']
 
-test_client = binance.Trade(key, secret, base_url=base_url)
+test_client = Spot(key=key, secret=secret, base_url=base_url)
 
 logging.info('start to place orders')
 
@@ -53,30 +53,27 @@ def place_order(symbol, side,  price, qty):
         'price': price
     }
 
-    test_client.new_order(**sell_params)
+    print(sell_params)
+
+    try:
+        test_client.new_order(**sell_params)
+    except ClientError as error:
+        logging.error('seeing error when placing order')
+        logging.error(error)
+        logging.error(symbol)
+
 
 for symbol in symbols:
-    logging.info('placeing buy order for: {}'.format(symbol['symbol']))
     qty = 1
-
-    try:
-        place_order(symbol['symbol'], 'BUY',  symbol['price'], 1)
-    except APIException as error:
-        logging.error('seeing error when placing order')
-        logging.error('retry by increase the qty ')
-        place_order(symbol['symbol'], 'BUY',  symbol['price'], 10000)
-
+    if (symbol['symbol'].startswith('XRP') or symbol['symbol'].startswith('TRX')):
+        qty = 1000
+    logging.info('placeing buy order for: {}'.format(symbol['symbol']))
+    place_order(symbol['symbol'], 'BUY',  symbol['price'], qty)
     logging.info('placeing sell order for: {}'.format(symbol['symbol']))
-
-    try:
-        place_order(symbol['symbol'], 'SELL',  symbol['price'], 1)
-    except APIException as error:
-        logging.error('seeing error when placing order')
-        logging.error('retry by increase the qty ')
-        place_order(symbol['symbol'], 'SELL',  symbol['price'], 10000)
+    place_order(symbol['symbol'], 'SELL',  symbol['price'], qty)
 
 logging.info('validating trades for all pairs')
 
 for symbol in symbols:
     trades = test_client.my_trades(symbol['symbol'])
-    logging.info("symbol: " + symbol['symbol'] + " has trades: "  + str(len(trades)))
+    logging.info("symbol: " + symbol['symbol'] + " has trades: " + str(len(trades)))
